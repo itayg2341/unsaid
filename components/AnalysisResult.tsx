@@ -5,9 +5,10 @@ import { useState } from 'react';
 
 interface AnalysisResultProps {
   result: any;
+  onAnalyzeAnother: () => void;
 }
 
-export default function AnalysisResult({ result }: AnalysisResultProps) {
+export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisResultProps) {
   const { t } = useLanguage();
   const [showWarning, setShowWarning] = useState(true);
 
@@ -141,9 +142,15 @@ export default function AnalysisResult({ result }: AnalysisResultProps) {
 
         {/* End message */}
         <div className="mt-20 pt-16 border-t border-gray-200 text-center">
-          <p className="text-lg text-dark/60 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-lg text-dark/60 leading-relaxed max-w-2xl mx-auto mb-8">
             {t.endClosing}
           </p>
+          <button
+            onClick={onAnalyzeAnother}
+            className="px-8 py-3 bg-dark text-white rounded-sm hover:bg-dark/90 transition-colors"
+          >
+            {t.analyzeAnother}
+          </button>
         </div>
       </div>
     </div>

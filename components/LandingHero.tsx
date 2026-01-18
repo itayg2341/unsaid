@@ -41,23 +41,6 @@ export default function LandingHero({ onStart }: LandingHeroProps) {
         >
           {t.ctaButton}
         </button>
-
-        {/* Privacy section */}
-        <div className="mt-32 pt-16 border-t border-gray-200">
-          <h2 className="text-2xl font-serif mb-8 text-dark">
-            {t.privacyTitle}
-          </h2>
-          <div className="space-y-4 text-left">
-            {t.privacyPoints.map((point, index) => (
-              <p key={index} className="text-base text-dark/70 leading-relaxed">
-                {point}
-              </p>
-            ))}
-          </div>
-          <p className="mt-8 text-lg font-medium text-dark">
-            {t.privacyClosing}
-          </p>
-        </div>
       </div>
     </div>
   );

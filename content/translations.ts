@@ -60,6 +60,7 @@ export interface Content {
   // End
   endMessage: string;
   endClosing: string;
+  analyzeAnother: string;
   
   // Common
   loading: string;
@@ -181,6 +182,7 @@ export const content: Record<Language, Content> = {
     // End
     endMessage: "This result will not be saved. Take a screenshot if you need to.",
     endClosing: "There is no history. There is no account. This conversation never happened here.",
+    analyzeAnother: "Analyze another conversation",
     
     // Common
     loading: "Loading...",
@@ -301,6 +303,7 @@ export const content: Record<Language, Content> = {
     // End
     endMessage: "התוצאה הזו לא תישמר. צלם/י מסך אם את/ה צריך/ה.",
     endClosing: "אין היסטוריה. אין חשבון. השיחה הזו אף פעם לא קרתה פה.",
+    analyzeAnother: "נתח/י שיחה נוספת",
     
     // Common
     loading: "טוען...",

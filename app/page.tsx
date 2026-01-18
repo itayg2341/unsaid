@@ -91,7 +91,10 @@ export default function Home() {
       )}
 
       {flowState === 'RESULT' && analysisResult && (
-        <AnalysisResult result={analysisResult} />
+        <AnalysisResult 
+          result={analysisResult}
+          onAnalyzeAnother={() => setFlowState('UPLOAD')}
+        />
       )}
     </main>
   );

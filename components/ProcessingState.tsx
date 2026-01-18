@@ -5,11 +5,12 @@ import { useState, useEffect } from 'react';
 
 interface ProcessingStateProps {
   onComplete: (result: any) => void;
+  onError?: (error: string) => void;
   conversationContent: string;
 }
 
-export default function ProcessingState({ onComplete, conversationContent }: ProcessingStateProps) {
-  const { t } = useLanguage();
+export default function ProcessingState({ onComplete, onError, conversationContent }: ProcessingStateProps) {
+  const { t, language } = useLanguage();
   const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
@@ -18,27 +19,16 @@ export default function ProcessingState({ onComplete, conversationContent }: Pro
       setMessageIndex((prev) => (prev + 1) % t.processingMessages.length);
     }, 2000);
 
-    // Simulate analysis completion
-    // INTEGRATION POINT: Replace with actual API call to analysis service
-    const analysisTimer = setTimeout(() => {
-      performAnalysis();
-    }, 8000);
+    // Start analysis immediately
+    performAnalysis();
 
     return () => {
       clearInterval(interval);
-      clearTimeout(analysisTimer);
     };
   }, []);
 
   const performAnalysis = async () => {
-    // MOCK ANALYSIS - Replace with actual AI analysis
-    // This is where you would call your analysis API/service
-    
-    /*
-      INTEGRATION POINT: AI Analysis Pipeline
-      
-      Example implementation:
-      ```
+    try {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -47,43 +37,20 @@ export default function ProcessingState({ onComplete, conversationContent }: Pro
           language: language 
         }),
       });
-      
+
+      if (!response.ok) {
+        throw new Error('Analysis failed');
+      }
+
       const result = await response.json();
       onComplete(result);
-      ```
-      
-      Your analysis service should:
-      1. Parse WhatsApp conversation format
-      2. Extract participants, messages, timestamps
-      3. Analyze patterns, dynamics, emotional investment
-      4. Generate structured result matching the sections in translations
-      5. Return result in the appropriate language
-    */
 
-    // Mock result for demo
-    const mockResult = {
-      powerDynamics: {
-        leader: "Person A",
-        follower: "Person B",
-        analysis: "Person A consistently initiated conversations and set the pace. Person B responded but rarely led topics. The dynamic shows a clear pattern of pursuit and withdrawal."
-      },
-      emotionalInvestment: {
-        moreInvested: "Person B",
-        analysis: "Response times, message length, and emotional content suggest Person B had higher emotional stakes. Questions went unanswered more frequently for Person B."
-      },
-      patterns: {
-        repeated: "Late night conversations followed by morning silence",
-        changed: "Initial enthusiasm gradually decreased over 6 weeks",
-        neverCame: "Plans discussed but never finalized"
-      },
-      unsaid: {
-        avoided: "Direct discussion of relationship definition",
-        implied: "Emotional availability concerns",
-        known: "Both parties aware of incompatible expectations"
+    } catch (error) {
+      console.error('Analysis error:', error);
+      if (onError) {
+        onError(error instanceof Error ? error.message : 'Analysis failed');
       }
-    };
-
-    onComplete(mockResult);
+    }
   };
 
   return (
