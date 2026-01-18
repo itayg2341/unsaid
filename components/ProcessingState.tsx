@@ -43,6 +43,12 @@ export default function ProcessingState({ onComplete, onError, conversationConte
       }
 
       const result = await response.json();
+      console.log('API result received:', result);
+      
+      if (!result || !result.powerDynamics) {
+        throw new Error('Invalid result format from API');
+      }
+      
       onComplete(result);
 
     } catch (error) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageToggle from '@/components/LanguageToggle';
 import LandingHero from '@/components/LandingHero';
 import EmotionalPriming from '@/components/EmotionalPriming';
@@ -20,10 +21,12 @@ type FlowState =
   | 'RESULT';
 
 export default function Home() {
+  const { language } = useLanguage();
   const [flowState, setFlowState] = useState<FlowState>('LANDING');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [conversationContent, setConversationContent] = useState<string>('');
   const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [analysisLanguage, setAnalysisLanguage] = useState<'en' | 'he'>('en');
 
   const handleStart = () => {
     setFlowState('PRIMING');
@@ -48,6 +51,7 @@ export default function Home() {
   };
 
   const handlePaymentComplete = () => {
+    setAnalysisLanguage(language); // Capture the language at analysis time
     setFlowState('PROCESSING');
   };
 
@@ -93,6 +97,7 @@ export default function Home() {
       {flowState === 'RESULT' && analysisResult && (
         <AnalysisResult 
           result={analysisResult}
+          originalLanguage={analysisLanguage}
           onAnalyzeAnother={() => setFlowState('UPLOAD')}
         />
       )}

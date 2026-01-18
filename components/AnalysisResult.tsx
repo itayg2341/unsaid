@@ -1,16 +1,59 @@
 'use client';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AnalysisResultProps {
   result: any;
   onAnalyzeAnother: () => void;
+  originalLanguage: 'en' | 'he';
 }
 
-export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisResultProps) {
-  const { t } = useLanguage();
+export default function AnalysisResult({ result, onAnalyzeAnother, originalLanguage }: AnalysisResultProps) {
+  const { t, language } = useLanguage();
   const [showWarning, setShowWarning] = useState(true);
+  const [displayResult, setDisplayResult] = useState(result);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedCache, setTranslatedCache] = useState<{en?: any, he?: any}>({
+    [originalLanguage]: result
+  });
+
+  // Debug: Log the result to see what we're getting
+  console.log('Result received:', result);
+  console.log('Display result:', displayResult);
+
+  useEffect(() => {
+    // When language changes, check if we need to translate
+    if (language !== originalLanguage && !translatedCache[language]) {
+      translateResult();
+    } else if (translatedCache[language]) {
+      setDisplayResult(translatedCache[language]);
+    }
+  }, [language]);
+
+  const translateResult = async () => {
+    setIsTranslating(true);
+    try {
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          result: result,
+          targetLanguage: language
+        }),
+      });
+
+      if (response.ok) {
+        const translated = await response.json();
+        setDisplayResult(translated);
+        setTranslatedCache(prev => ({ ...prev, [language]: translated }));
+      }
+    } catch (error) {
+      console.error('Translation failed:', error);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen px-6 py-20">
@@ -35,6 +78,13 @@ export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisRes
           {t.resultTitle}
         </h1>
 
+        {/* Translating indicator */}
+        {isTranslating && (
+          <div className="text-center mb-8 text-muted">
+            <div className="inline-block animate-pulse">Translating...</div>
+          </div>
+        )}
+
         {/* Result sections */}
         <div className="space-y-16">
           {/* Power Dynamics */}
@@ -47,7 +97,7 @@ export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisRes
             </p>
             <div className="prose prose-lg max-w-none">
               <p className="text-dark/80 leading-relaxed">
-                {result.powerDynamics.analysis}
+                {displayResult.powerDynamics.analysis}
               </p>
             </div>
           </section>
@@ -62,7 +112,7 @@ export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisRes
             </p>
             <div className="prose prose-lg max-w-none">
               <p className="text-dark/80 leading-relaxed">
-                {result.emotionalInvestment.analysis}
+                {displayResult.emotionalInvestment.analysis}
               </p>
             </div>
           </section>
@@ -81,7 +131,7 @@ export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisRes
                   What repeated
                 </h3>
                 <p className="text-dark/80 leading-relaxed">
-                  {result.patterns.repeated}
+                  {displayResult.patterns.repeated}
                 </p>
               </div>
               <div>
@@ -89,7 +139,7 @@ export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisRes
                   What changed
                 </h3>
                 <p className="text-dark/80 leading-relaxed">
-                  {result.patterns.changed}
+                  {displayResult.patterns.changed}
                 </p>
               </div>
               <div>
@@ -97,7 +147,7 @@ export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisRes
                   What never came
                 </h3>
                 <p className="text-dark/80 leading-relaxed">
-                  {result.patterns.neverCame}
+                  {displayResult.patterns.neverCame}
                 </p>
               </div>
             </div>
@@ -117,7 +167,7 @@ export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisRes
                   What was avoided
                 </h3>
                 <p className="text-dark/80 leading-relaxed">
-                  {result.unsaid.avoided}
+                  {displayResult.unsaid.avoided}
                 </p>
               </div>
               <div>
@@ -125,7 +175,7 @@ export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisRes
                   What was implied
                 </h3>
                 <p className="text-dark/80 leading-relaxed">
-                  {result.unsaid.implied}
+                  {displayResult.unsaid.implied}
                 </p>
               </div>
               <div>
@@ -133,7 +183,7 @@ export default function AnalysisResult({ result, onAnalyzeAnother }: AnalysisRes
                   What was known but not spoken
                 </h3>
                 <p className="text-dark/80 leading-relaxed">
-                  {result.unsaid.known}
+                  {displayResult.unsaid.known}
                 </p>
               </div>
             </div>

@@ -40,10 +40,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
+        { error: 'Gemini API key not configured' },
         { status: 500 }
       );
     }
@@ -118,28 +118,33 @@ Return your analysis as a JSON object with this exact structure (ALL text must b
       ? `נתח את שיחת הוואטסאפ הבאה. חשוב מאוד: כתוב את כל התשובה בעברית בלבד.\n\nשיחה:\n${conversation}`
       : `Analyze the following WhatsApp conversation. IMPORTANT: Write the entire response in English only. Do not use any other language.\n\nConversation:\n${conversation}`;
 
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 2500,
-        response_format: { type: 'json_object' }
-      }),
-    });
+    const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+
+    // Call Google Gemini API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: fullPrompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 8192
+          }
+        }),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI API error:', error);
+      console.error('Gemini API error:', error);
       return NextResponse.json(
         { error: 'Analysis failed' },
         { status: 500 }
@@ -147,7 +152,12 @@ Return your analysis as a JSON object with this exact structure (ALL text must b
     }
 
     const data = await response.json();
-    const result = JSON.parse(data.choices[0].message.content) as AnalysisResult;
+    let generatedText = data.candidates[0].content.parts[0].text;
+    
+    // Remove markdown code blocks if present
+    generatedText = generatedText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    
+    const result = JSON.parse(generatedText) as AnalysisResult;
 
     return NextResponse.json(result);
 
